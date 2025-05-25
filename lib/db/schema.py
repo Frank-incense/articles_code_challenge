@@ -15,10 +15,13 @@ authors = '''
 CREATE TABLE IF NOT EXISTS authors(
     id INTEGER PRIMARY KEY,
     name VARCHAR NOT NULL,
-    email VARCHAR NOT NULL,
-    );'''
+    email VARCHAR NOT NULL
+    );
+    '''
 
 magazines = '''
 CREATE TABLE magazines(
     id INTEGER PRIMARY KEY,
+    name VARCHAR,
+    category VARCHAR
     );'''

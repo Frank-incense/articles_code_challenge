@@ -3,6 +3,7 @@ from schema import articles, authors, magazines
 from models.author import Author
 from models.magazine import Magazine
 from models.article import Article
+from faker import Faker
 
 def seed_data():
     # Drop existing tables (optional for dev)
