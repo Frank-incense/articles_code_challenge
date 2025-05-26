@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS articles(
     author_id INTEGER NOT NULL,
     magazine_id INTEGER NOT NULL,
     title VARCHAR NOT NULL,
-    content VARCHAR NOT NULL,
     FOREIGN KEY (author_id) REFERENCES authors(id),
     FOREIGN KEY (magazine_id) REFERENCES mgazines(id)
     );'''

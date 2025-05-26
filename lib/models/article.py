@@ -5,12 +5,11 @@ class Article:
 
     all = {}
 
-    def __init__(self, author_id, magazine_id, title, content):
+    def __init__(self, author_id, magazine_id, title):
        self.id = None
        self.author_id = author_id
        self.magazine_id = magazine_id
        self.title = title
-       self.content = content 
 
     def __repr__(self):
         return f"<Article {self.id}: {self.title}>"
@@ -48,16 +47,7 @@ class Article:
         else:
             raise ValueError("Title should not be an empty string")
     
-    @property
-    def content(self):
-        return self._content
-    @content.setter
-    def content(self, content):
-        if isinstance(content, str) and len(content) > 0:
-            self._content = content
-        else:
-            raise ValueError("Content should not be an empty string")
-        
+    
     @classmethod
     def create_table(cls):
         db_cursor.execute(articles)
@@ -73,34 +63,32 @@ class Article:
     
     def save(self):
         sql = """
-            INSERT INTO articles(author_id, magazine_id, title, content)
-            VALUES (?,?,?,?)
+            INSERT INTO articles(author_id, magazine_id, title)
+            VALUES (?,?,?)
         """
         db_cursor.execute(sql, (self.author_id,
                                 self.magazine_id,
-                                self.title,
-                                self.content))
+                                self.title))
         db_conn.commit()
 
         self.id = db_cursor.lastrowid
         type(self).all[self.id] = self
 
     @classmethod
-    def create(cls, author_id, magazine_id, title, content):
-        article = cls(author_id, magazine_id, title, content)
+    def create(cls, author_id, magazine_id, title):
+        article = cls(author_id, magazine_id, title)
         article.save()
         return article
 
     def update(self):
         sql = """
             UPDATE articles
-            SET author_id = ?, magazine_id = ?, title = ?, content = ?
+            SET author_id = ?, magazine_id = ?, title = ?
             WHERE id = ?
         """
         db_cursor.execute(sql, (self.author_id,
                                 self.magazine_id,
-                                self.title,
-                                self.content, 
+                                self.title, 
                                 self.id))
         db_conn.commit()
 
@@ -124,7 +112,6 @@ class Article:
             article.author_id = row[1]
             article.magazine_id = row[2]
             article.title = row[3]
-            article.content = row[4]
         else:
             # not in dictionary, create new instance and add to dictionary
             article = cls(row[1], row[2], row[3], row[4])
@@ -168,20 +155,4 @@ class Article:
         row = db_cursor.execute(sql, (title,)).fetchone()
         return cls.instance_from_db(row) if row else None
     
-    @classmethod
-    def find_by_author(cls, author):
-        sql = """
-            SELECT *
-            FROM articles
-            WHERE author_id = ?"""
-        rows = db_cursor.execute(sql, (author,)).fetchall()
-        return [cls.instance_from_db(row) for row in rows] if rows else None
-
-    @classmethod
-    def find_by_magazine(cls, magazine):
-        sql = """
-            SELECT *
-            FROM articles
-            WHERE magazine_id = ?"""
-        rows = db_cursor.execute(sql, (magazine,)).fetchall()
-        return [cls.instance_from_db(row) for row in rows] if rows else None
+    

@@ -141,19 +141,52 @@ class Author:
         row = db_cursor.execute(sql, (name,)).fetchone()
         return cls.instance_from_db(row) if row else None
     
-    # def articles(self):
-    #     sql = """
-    #         SELECT *
-    #         FROM articles
-    #         WHERE author_id = ?"""
-    #     rows = db_cursor.execute(sql, (self.id,)).fetchall()
-    #     return [cls.instance_from_db(row) for row in rows] if rows else None
+    def articles(self):
+        from article import Article
+        sql = """
+            SELECT *
+            FROM articles
+            WHERE author_id = ?"""
+        rows = db_cursor.execute(sql, (self.id,)).fetchall()
+        return [Article.instance_from_db(row) for row in rows] if rows else None
 
     
-    # def magazines(self):
-    #     sql = """
-    #         SELECT *
-    #         FROM articles
-    #         WHERE magazine_id = ?"""
-    #     rows = db_cursor.execute(sql, (self.id,)).fetchall()
-    #     return [cls.instance_from_db(row) for row in rows] if rows else None
+    def magazines(self):
+        from magazine import Magazine
+        sql = """
+            SELECT DISTINCT
+            articles.magazine_id AS id, 
+            magazines.name AS name, 
+            magazines.category AS category
+            FROM articles
+            INNER JOIN authors
+            ON articles.author_id = authors.id
+            INNER JOIN magazines
+            ON articles.magazine_id = magazines.id
+            WHERE articles.author_id = ?"""
+        rows = db_cursor.execute(sql, (self.id,)).fetchall()
+        return [Magazine.instance_from_db(row) for row in rows] if rows else None
+
+    def add_article(self, magazine, title):
+        from article import Article
+        try:
+            newArticle = Article.create(author_id=self.id, 
+                                 magazine_id=magazine,
+                                 title=title)
+            print(f"Success: new article {newArticle} has been created")
+        except ValueError as e:
+            print(f"Error creating: {e}")
+
+    def topic_areas(self):
+        sql = """
+            SELECT DISTINCT
+            articles.magazine_id AS id, 
+            magazines.category AS category
+            FROM articles
+            INNER JOIN authors
+            ON articles.author_id = authors.id
+            INNER JOIN magazines
+            ON articles.magazine_id = magazines.id
+            WHERE articles.author_id = ?"""
+        rows = db_cursor.execute(sql, (self.id,)).fetchall()
+        return [row[1] for row in rows] if rows else None

@@ -113,7 +113,7 @@ class Magazine:
         return cls.instance_from_db(row) if row else None
     
     @classmethod
-    def find_by_name(cls, category):
+    def find_by_category(cls, category):
         sql = """
             SELECT *
             FROM magazines
@@ -123,13 +123,64 @@ class Magazine:
         rows = db_cursor.execute(sql, (category,)).fetchall()
         return [cls.instance_from_db(row) for row in rows] if rows else None
     
-    def authors_with_articles(self):
+    def contibutors(self):
+        from author import Author
         sql = """
-            SELECT articles.title, authors.name
+            SELECT DISTINCT articles.author_id, authors.name, authors.email
             FROM articles
             INNER JOIN authors
             ON articles.author_id = authors.id
             WHERE articles.magazine_id = ?
         """
         rows = db_cursor.execute(sql, (self.id,))
-        return [print(row) for row in rows]
+        return [Author.instance_from_db(row) for row in rows] if rows else None
+    
+    def count_articles(self):
+        sql = """
+            SELECT 
+            COUNT(articles.id) AS articles
+            FROM articles
+            INNER JOIN magazines
+            ON articles.magazine_id = magazines.id
+            WHERE magazines.id = ?
+        """
+        count = db_cursor.execute(sql, (self.id,)).fetchone
+        return count[0]
+    
+    @classmethod
+    def most_contributions(cls):
+        from author import Author
+        sql = """
+            SELECT 
+            author_id, 
+            count(id) as contributions
+            FROM articles
+            GROUP BY author_id
+            ORDER BY contributions DESC
+        """
+        author = db_cursor.execute(sql).fetchone()
+        return Author.find_by_id(author[0]) if author else None
+    
+    def article_titles(self):
+        sql = """
+            SELECT title 
+            FROM articles
+            WHERE magazine_id = ?
+        """
+
+        titles = db_cursor.execute(sql, (self.id,)).fetchall()
+        return [title for title in titles]if titles else None
+    
+    def contributing_authors(self):
+        sql = """
+            SELECT DISTINCT
+            COUNT(article) AS artcle_count,
+            authors.name
+            FROM articles
+            INNER JOIN aurhors
+            ON articles.author_id = authors.id
+            GROUP BY articles.author_id
+            WHERE magazine_id = ? AND article_count > 1
+        """
+        authors = db_cursor.execute(sql, (self.id,))
+        return [author[1] for author in authors]if authors else None

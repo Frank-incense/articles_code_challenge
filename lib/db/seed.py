@@ -17,6 +17,7 @@ def seed_data():
     db_cursor.execute(articles)
 
     # Create and insert data
+    
     # author1 = Author("Nancy")
     # author1.save()
 
