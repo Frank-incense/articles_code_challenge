@@ -68,13 +68,11 @@ class Magazine:
         magazine = cls.all.get(row[0])
         if magazine:
             # ensure attributes match row values in case local object was modified
-            magazine.author_id = row[1]
-            magazine.magazine_id = row[2]
-            magazine.title = row[3]
-            magazine.content = row[4]
+            magazine.name = row[1]
+            magazine.category = row[2]
         else:
             # not in dictionary, create new instance and add to dictionary
-            magazine = cls(row[1], row[2], row[3], row[4])
+            magazine = cls(row[1], row[2])
             magazine.id = row[0]
             cls.all[magazine.id] = magazine
         return magazine
@@ -124,7 +122,7 @@ class Magazine:
         return [cls.instance_from_db(row) for row in rows] if rows else None
     
     def contibutors(self):
-        from author import Author
+        from .author import Author
         sql = """
             SELECT DISTINCT articles.author_id, authors.name, authors.email
             FROM articles
@@ -149,7 +147,7 @@ class Magazine:
     
     @classmethod
     def most_contributions(cls):
-        from author import Author
+        from .author import Author
         sql = """
             SELECT 
             author_id, 
@@ -173,14 +171,15 @@ class Magazine:
     
     def contributing_authors(self):
         sql = """
-            SELECT DISTINCT
-            COUNT(article) AS artcle_count,
+            SELECT 
+            COUNT(articles.id) AS article_count,
             authors.name
             FROM articles
-            INNER JOIN aurhors
+            INNER JOIN authors
             ON articles.author_id = authors.id
+            WHERE articles.magazine_id = ?
             GROUP BY articles.author_id
-            WHERE magazine_id = ? AND article_count > 1
+            HAVING article_count > 1
         """
         authors = db_cursor.execute(sql, (self.id,))
         return [author[1] for author in authors]if authors else None

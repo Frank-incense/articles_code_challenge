@@ -1,6 +1,5 @@
 from db import db_conn,db_cursor
 from db.schema import authors
-import re
 
 class Author:
     all = {}
@@ -18,8 +17,6 @@ class Author:
     
     @name.setter
     def name(self, name):
-        # pattern = r'[A-z]+/s[A-z]+'
-        # names = re.compile(pattern=pattern)
         if isinstance(name, str) and len(name) > 0:
             self._name = name
         else:
@@ -31,8 +28,6 @@ class Author:
     
     @email.setter
     def email(self, email):
-        # pattern = r'[A-z]+/s[A-z]+'
-        # names = re.compile(pattern=pattern)
         if isinstance(email, str) and len(email) > 0:
             self._email = email
         else:
@@ -94,13 +89,11 @@ class Author:
         author = cls.all.get(row[0])
         if author:
             # ensure attributes match row values in case local object was modified
-            author.author_id = row[1]
-            author.magazine_id = row[2]
-            author.title = row[3]
-            author.content = row[4]
+            author.name= row[1]
+            author.email = row[2]
         else:
             # not in dictionary, create new instance and add to dictionary
-            author = cls(row[1], row[2], row[3], row[4])
+            author = cls(row[1], row[2])
             author.id = row[0]
             cls.all[author.id] = author
         return author
@@ -114,8 +107,7 @@ class Author:
         """
 
         rows = db_cursor.execute(sql).fetchall()
-
-        return [cls.instance_from_db(row) for row in rows]
+        return [cls.instance_from_db(row) for row in rows]if rows else None
 
     @classmethod
     def find_by_id(cls, id):
@@ -142,7 +134,7 @@ class Author:
         return cls.instance_from_db(row) if row else None
     
     def articles(self):
-        from article import Article
+        from .article import Article
         sql = """
             SELECT *
             FROM articles
@@ -152,7 +144,7 @@ class Author:
 
     
     def magazines(self):
-        from magazine import Magazine
+        from .magazine import Magazine
         sql = """
             SELECT DISTINCT
             articles.magazine_id AS id, 
@@ -168,7 +160,7 @@ class Author:
         return [Magazine.instance_from_db(row) for row in rows] if rows else None
 
     def add_article(self, magazine, title):
-        from article import Article
+        from .article import Article
         try:
             newArticle = Article.create(author_id=self.id, 
                                  magazine_id=magazine,
@@ -179,8 +171,7 @@ class Author:
 
     def topic_areas(self):
         sql = """
-            SELECT DISTINCT
-            articles.magazine_id AS id, 
+            SELECT DISTINCT 
             magazines.category AS category
             FROM articles
             INNER JOIN authors
@@ -189,4 +180,4 @@ class Author:
             ON articles.magazine_id = magazines.id
             WHERE articles.author_id = ?"""
         rows = db_cursor.execute(sql, (self.id,)).fetchall()
-        return [row[1] for row in rows] if rows else None
+        return [row for row in rows] if rows else None
