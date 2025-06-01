@@ -138,7 +138,10 @@ class Magazine:
     def contributors(self):
         from .author import Author
         sql = """
-            SELECT DISTINCT articles.author_id, authors.name, authors.email
+            SELECT DISTINCT 
+            articles.author_id, 
+            authors.name, 
+            authors.email
             FROM articles
             INNER JOIN authors
             ON articles.author_id = authors.id
