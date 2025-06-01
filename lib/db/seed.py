@@ -2,6 +2,7 @@ from models.author import Author
 from models.magazine import Magazine
 from models.article import Article
 from faker import Faker
+
 import random
 
 def seed_data():

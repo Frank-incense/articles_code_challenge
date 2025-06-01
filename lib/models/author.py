@@ -1,4 +1,4 @@
-from db import db_conn,db_cursor
+from db.connection import db_conn,db_cursor
 from db.schema import authors
 
 class Author:
@@ -180,4 +180,4 @@ class Author:
             ON articles.magazine_id = magazines.id
             WHERE articles.author_id = ?"""
         rows = db_cursor.execute(sql, (self.id,)).fetchall()
-        return [row for row in rows] if rows else None
+        return [row[0] for row in rows] if rows else None

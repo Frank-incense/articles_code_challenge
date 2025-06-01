@@ -1,4 +1,4 @@
-from db import db_conn,db_cursor
+from db.connection import db_conn,db_cursor
 from db.schema import magazines
 
 class Magazine:
@@ -121,7 +121,21 @@ class Magazine:
         rows = db_cursor.execute(sql, (category,)).fetchall()
         return [cls.instance_from_db(row) for row in rows] if rows else None
     
-    def contibutors(self):
+    def articles(self):
+        from .article import Article
+        sql = """
+            SELECT articles.id,
+            articles.author_id,
+            magazines.id,
+            articles.title
+            FROM articles
+            JOIN magazines
+            ON articles.magazine_id = magazines.id
+            WHERE magazine_id = ?"""
+        rows = db_cursor.execute(sql, (self.id,)).fetchall()
+        return [Article.instance_from_db(row) for row in rows] if rows else None
+
+    def contributors(self):
         from .author import Author
         sql = """
             SELECT DISTINCT articles.author_id, authors.name, authors.email
@@ -167,19 +181,21 @@ class Magazine:
         """
 
         titles = db_cursor.execute(sql, (self.id,)).fetchall()
-        return [title for title in titles]if titles else None
+        return [title[0] for title in titles]if titles else None
     
     def contributing_authors(self):
+        from .author import Author
         sql = """
             SELECT 
-            COUNT(articles.id) AS article_count,
-            authors.name
+            authors.id,
+            authors.name,
+            authors.email
             FROM articles
             INNER JOIN authors
             ON articles.author_id = authors.id
             WHERE articles.magazine_id = ?
             GROUP BY articles.author_id
-            HAVING article_count > 1
+            HAVING COUNT(articles.id) > 1
         """
         authors = db_cursor.execute(sql, (self.id,))
-        return [author[1] for author in authors]if authors else None
+        return [Author.instance_from_db(author) for author in authors]if authors else None

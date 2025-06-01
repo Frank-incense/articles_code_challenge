@@ -1,4 +1,4 @@
-from db import db_conn,db_cursor
+from db.connection import db_conn,db_cursor
 from db.schema import articles
 
 class Article:
