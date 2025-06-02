@@ -1,5 +1,4 @@
 from lib.db.connection import get_connection
-from lib.db.schema import articles
 
 db_conn = get_connection()
 db_cursor = db_conn.cursor()
@@ -52,7 +51,17 @@ class Article:
     
     @classmethod
     def create_table(cls):
-        db_cursor.execute(articles)
+        sql = """
+            CREATE TABLE IF NOT EXISTS articles(
+            id INTEGER PRIMARY KEY,
+            author_id INTEGER NOT NULL,
+            magazine_id INTEGER NOT NULL,
+            title VARCHAR NOT NULL,
+            FOREIGN KEY (author_id) REFERENCES authors(id),
+            FOREIGN KEY (magazine_id) REFERENCES mgazines(id)
+            )
+        """
+        db_cursor.execute(sql)
         db_conn.commit()
 
     @classmethod

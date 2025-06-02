@@ -1,5 +1,4 @@
 from lib.db.connection import get_connection
-from lib.db.schema import magazines
 
 db_conn = get_connection()
 db_cursor = db_conn.cursor()
@@ -16,7 +15,13 @@ class Magazine:
     
     @classmethod
     def create_table(cls):
-        db_cursor.execute(magazines)
+        sql = """
+        CREATE TABLE magazines(
+        id INTEGER PRIMARY KEY,
+        name VARCHAR,
+        category VARCHAR
+        )"""
+        db_cursor.execute(sql)
         db_conn.commit()
 
     @classmethod

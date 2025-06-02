@@ -64,3 +64,5 @@ instance
 .vscode
 package-lock.json
 
+search_db_conn.py
+test_all.py

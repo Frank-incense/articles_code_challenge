@@ -1,5 +1,4 @@
 from lib.db.connection import get_connection
-from lib.db.schema import authors
 
 db_conn = get_connection()
 db_cursor = db_conn.cursor()
@@ -27,7 +26,12 @@ class Author:
 
     @classmethod
     def create_table(cls):
-        db_cursor.execute(authors)
+        sql = """
+        CREATE TABLE IF NOT EXISTS authors(
+        id INTEGER PRIMARY KEY,
+        name VARCHAR NOT NULL
+        )"""
+        db_cursor.execute(sql)
         db_conn.commit()
 
     @classmethod
