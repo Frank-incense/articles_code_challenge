@@ -13,8 +13,7 @@ CREATE TABLE IF NOT EXISTS articles(
 authors = '''
 CREATE TABLE IF NOT EXISTS authors(
     id INTEGER PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    email VARCHAR NOT NULL
+    name VARCHAR NOT NULL
     );
     '''
 

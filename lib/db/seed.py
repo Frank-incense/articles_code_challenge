@@ -19,7 +19,6 @@ def seed_data():
     # Create and insert data
     authors = [Author.create(
                         name=fake.name(),
-                        email=fake.email()
                         ) 
                for i in range(20)]
     magazines = [Magazine.create(

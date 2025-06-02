@@ -1,11 +1,13 @@
-from db.connection import db_conn,db_cursor
-from db.schema import magazines
+from lib.db.connection import get_connection
+from lib.db.schema import magazines
 
+db_conn = get_connection()
+db_cursor = db_conn.cursor()
 class Magazine:
 
     all = {}
-    def __init__(self, name, category):
-        self.id = None
+    def __init__(self, name, category, id=None):
+        self.id = id
         self.name = name
         self.category = category
         
@@ -140,8 +142,7 @@ class Magazine:
         sql = """
             SELECT DISTINCT 
             articles.author_id, 
-            authors.name, 
-            authors.email
+            authors.name
             FROM articles
             INNER JOIN authors
             ON articles.author_id = authors.id
@@ -150,17 +151,20 @@ class Magazine:
         rows = db_cursor.execute(sql, (self.id,))
         return [Author.instance_from_db(row) for row in rows] if rows else None
     
-    def count_articles(self):
+    @classmethod
+    def article_counts(cls):
         sql = """
-            SELECT 
+            SELECT DISTINCT
+            magazines.id,
+            magazines.name,
+            magazines.category,
             COUNT(articles.id) AS articles
             FROM articles
             INNER JOIN magazines
             ON articles.magazine_id = magazines.id
-            WHERE magazines.id = ?
         """
-        count = db_cursor.execute(sql, (self.id,)).fetchone
-        return count[0]
+        counts = db_cursor.execute(sql).fetchall()
+        return [cls.instance_from_db(count)for count in counts] if counts else None
     
     @classmethod
     def most_contributions(cls):
@@ -191,8 +195,7 @@ class Magazine:
         sql = """
             SELECT 
             authors.id,
-            authors.name,
-            authors.email
+            authors.name
             FROM articles
             INNER JOIN authors
             ON articles.author_id = authors.id
@@ -202,3 +205,20 @@ class Magazine:
         """
         authors = db_cursor.execute(sql, (self.id,))
         return [Author.instance_from_db(author) for author in authors]if authors else None
+    
+    @classmethod
+    def with_multiple_authors(cls):
+        sql = """
+            SELECT DISTINCT
+            magazines.id,
+            magazines.name,
+            magazines.category
+            FROM magazines
+            INNER JOIN articles
+            ON magazines.id = articles.magazine_id
+            GROUP BY magazines.id
+            HAVING COUNT(articles.author_id) > 1
+        """
+        rows  = db_cursor.execute(sql).fetchall()
+        print([row for row in rows])
+        return [cls.instance_from_db(row) for row in rows]if rows else None

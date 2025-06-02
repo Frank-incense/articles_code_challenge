@@ -1,15 +1,17 @@
-from db.connection import db_conn,db_cursor
-from db.schema import authors
+from lib.db.connection import get_connection
+from lib.db.schema import authors
+
+db_conn = get_connection()
+db_cursor = db_conn.cursor()
 
 class Author:
     all = {}
-    def __init__(self, name, email):
-        self.id = None
+    def __init__(self, name, id=None):
+        self.id = id
         self.name = name
-        self.email = email
 
     def __repr__(self):
-        return f"<Author {self.id}: {self.name}: {self.email}>"
+        return f"<Author {self.id}: {self.name}>"
     
     @property
     def name(self):
@@ -22,16 +24,6 @@ class Author:
         else:
             raise ValueError("Name should be a string")
     
-    @property
-    def email(self):
-        return self._email
-    
-    @email.setter
-    def email(self, email):
-        if isinstance(email, str) and len(email) > 0:
-            self._email = email
-        else:
-            raise ValueError("Email should be a string")
 
     @classmethod
     def create_table(cls):
@@ -48,28 +40,28 @@ class Author:
     
     def save(self):
         sql = """
-            INSERT INTO authors(name, email)
-            VALUES (?,?)
+            INSERT INTO authors(name)
+            VALUES (?)
         """
-        db_cursor.execute(sql, (self.name,self.email))
+        db_cursor.execute(sql, (self.name,))
         db_conn.commit()
 
         self.id = db_cursor.lastrowid
         type(self).all[self.id] = self
 
     @classmethod
-    def create(cls, name, email):
-        author = cls( name, email)
+    def create(cls, name):
+        author = cls( name)
         author.save()
         return author
 
     def update(self):
         sql = """
             UPDATE authors
-            SET name = ?, email = ?
+            SET name = ?
             WHERE id = ?
         """
-        db_cursor.execute(sql, (self.name, self.email, self.id))
+        db_cursor.execute(sql, (self.name, self.id))
         db_conn.commit()
 
     def delete(self):
@@ -90,10 +82,9 @@ class Author:
         if author:
             # ensure attributes match row values in case local object was modified
             author.name= row[1]
-            author.email = row[2]
         else:
             # not in dictionary, create new instance and add to dictionary
-            author = cls(row[1], row[2])
+            author = cls(row[1])
             author.id = row[0]
             cls.all[author.id] = author
         return author
@@ -127,10 +118,11 @@ class Author:
         sql = """
             SELECT *
             FROM authors
-            WHERE name is ?
+            WHERE name = ?
         """
 
         row = db_cursor.execute(sql, (name,)).fetchone()
+        
         return cls.instance_from_db(row) if row else None
     
     def articles(self):
@@ -163,7 +155,7 @@ class Author:
         from .article import Article
         try:
             newArticle = Article.create(author_id=self.id, 
-                                 magazine_id=magazine,
+                                 magazine_id=magazine.id,
                                  title=title)
             print(f"Success: new article {newArticle} has been created")
         except ValueError as e:
@@ -181,3 +173,20 @@ class Author:
             WHERE articles.author_id = ?"""
         rows = db_cursor.execute(sql, (self.id,)).fetchall()
         return [row[0] for row in rows] if rows else None
+    
+    @classmethod
+    def top_author(cls):
+        sql = """
+            SELECT DISTINCT
+            articles.author_id,
+            authors.name,
+            COUNT(articles.id) as articles
+            FROM articles
+            INNER JOIN authors
+            ON articles.author_id = authors.id
+            GROUP BY articles.author_id
+            ORDER BY articles DESC
+        """
+
+        row = db_cursor.execute(sql).fetchone()
+        return cls.instance_from_db(row) if row else None

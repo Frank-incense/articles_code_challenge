@@ -1,1 +1,1 @@
-from .connection import db_conn, db_cursor
+from .connection import get_connection

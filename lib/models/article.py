@@ -1,6 +1,8 @@
-from db.connection import db_conn,db_cursor
-from db.schema import articles
+from lib.db.connection import get_connection
+from lib.db.schema import articles
 
+db_conn = get_connection()
+db_cursor = db_conn.cursor()
 class Article:
 
     all = {}
@@ -114,7 +116,7 @@ class Article:
             article.title = row[3]
         else:
             # not in dictionary, create new instance and add to dictionary
-            article = cls(row[1], row[2], row[3], row[4])
+            article = cls(row[1], row[2], row[3])
             article.id = row[0]
             cls.all[article.id] = article
         return article
