@@ -24,7 +24,7 @@ class Article:
         if Author.find_by_id(author_id):
             self._author_id = author_id
         else:
-            raise ValueError("Author id should of an author")
+            raise AttributeError("Author id should of an author")
     
     @property
     def magazine_id(self):
@@ -36,7 +36,7 @@ class Article:
         if Magazine.find_by_id(magazine_id):
             self._magazine_id = magazine_id
         else:
-            raise ValueError("Magazine id should of an magazine")
+            raise AttributeError("Magazine id should of an magazine")
     
     @property
     def title(self):

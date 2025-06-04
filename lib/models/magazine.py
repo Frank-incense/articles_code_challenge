@@ -13,6 +13,29 @@ class Magazine:
     def __repr__(self):
         return f"<Magazine {self.id}: {self.name}: {self.category}>"
     
+    @property
+    def name(self):
+        return self._name
+    
+    @name.setter
+    def name(self, name):
+        if isinstance(name, str) and len(name) > 0:
+            self._name = name
+        else:
+            raise ValueError("Name should be a string")
+    
+    @property
+    def category(self):
+        return self._category
+    
+    @category.setter
+    def category(self, category):
+        if isinstance(category, str) and len(category) > 0:
+            self._category = category
+        else:
+            raise ValueError("Category should be a string")
+    
+
     @classmethod
     def create_table(cls):
         sql = """
